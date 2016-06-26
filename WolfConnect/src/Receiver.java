@@ -1,9 +1,12 @@
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
 
 import com.adaptivehuffman.AdaptiveHuffman;
 
@@ -11,6 +14,7 @@ public class Receiver {
 	static InetAddress addr;
 	static int port = 27960;
     public static void main(String[] args) {
+    	writePacket();
         addr = null;
         try {
             addr = InetAddress.getByName("et.etjump.com");
@@ -29,9 +33,15 @@ public class Receiver {
         try {
         	socket.send(makePacket("getchallenge"));
         	socket.receive(receivedPacket);
+        	test();
             System.out.println(new String(receivedPacket.getData()));
             challenge = getChallenge(new String(receivedPacket.getData()));
-        	socket.send(test());
+            //System.out.println(challengeResponse(challenge));
+            Scanner input = new Scanner(System.in);
+            String toSend = input.nextLine();
+           
+            socket.send(emptyPack(toSend));
+        	//socket.send(test());
             socket.receive(receivedPacket);
             System.out.println(new String(receivedPacket.getData()));
         } catch (IOException e) {
@@ -41,6 +51,22 @@ public class Receiver {
      
     }
     
+    static String challengeResponse(long challengeToken){
+    	byte[] prefix = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
+    	String crafted = "\"\\g_password\\none\\cl_guid\\unknown\\cl_wwwDownload\\1\\name\\^pW^q!^pnn^q3^pr\\rate\\32000\\snaps\\20\\cl_anonymous\\0\\cl_punkbuster\\0\\protocol\\84\\qport\\18951\\challenge\\-1686583615\\\"";
+    	
+		return new String(prefix)+"connect "+crafted;
+    	
+    }
+    
+    static DatagramPacket emptyPack(String message){        
+    	//byte[] prefix = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
+    	byte[] msg = message.getBytes(Charset.forName("ASCII"));
+    	//byte[] fullMsg = new byte[prefix.length + msg.length];
+    	//System.arraycopy(prefix, 0, fullMsg, 0, prefix.length);
+    	//System.arraycopy(msg, 0, fullMsg, prefix.length, msg.length);
+		return new DatagramPacket(msg,msg.length, addr, port);
+    }
     static DatagramPacket makePacket(String message){        
     	byte[] prefix = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
     	byte[] msg = message.getBytes(Charset.forName("ASCII"));
@@ -69,13 +95,56 @@ public class Receiver {
     
     static long getChallenge(String message){
     	byte[] prefix = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
-    	System.out.println(new String(prefix));
+    	//System.out.println(new String(prefix));
     	message = message.replaceAll(new String(prefix),"");   	
     	message = message.replaceAll("\"","");
     	message = message.replaceAll(" ", "");
     	message = message.trim();
     	return Long.parseLong(message.replaceAll("challengeResponse", ""));
     }
+    
+    
+    static void writePacket(){
+    	char peer0_1[] = {
+    			(char)0xff, (char)0xff, (char)0xff, (char)0xff, (char)0x63, (char)0x6f, (char)0x6e, (char)0x6e,
+    			(char)0x65, (char)0x63, (char)0x74,(char) 0x20,(char) 0x00,(char) 0xaa,(char) 0x44,(char) 0x74,(char)
+    			0x30,(char) 0x8f,(char) 0x3e,(char) 0x1c,(char) 0xc6,(char) 0x30,(char) 0x9c,(char) 0x55,(char)
+    			0xdc,(char) 0x8f,(char) 0xfd,(char) 0x70,(char) 0x2a,(char) 0x26,(char) 0x1f,(char) 0xec,(char)
+    			0x5a,(char) 0x0a,(char) 0x53,(char) 0x3f,(char) 0xc6,(char) 0x87,(char) 0x4d,(char) 0xc4,(char)
+    			0xe2,(char) 0x5a,(char) 0x58,(char) 0x16,(char) 0x67,(char) 0x24,(char) 0xd6,(char) 0x44,(char)
+    			0xa1,(char) 0xb9,(char) 0x25,(char) 0x9c,(char) 0x17,(char) 0x44,(char) 0xc6,(char) 0xb9,(char)
+    			0x2b,(char) 0x97,(char) 0x0e,(char) 0x8c,(char) 0xca,(char) 0x1c,(char) 0xd8,(char) 0x1e,(char)
+    			0xf5,(char) 0xe8,(char) 0x1d,(char) 0x11,(char) 0xf5,(char) 0xbb,(char) 0xc6,(char) 0xf1,(char)
+    			0x85,(char) 0xd0,(char) 0x05,(char) 0xe9,(char) 0x9a,(char) 0x06,(char) 0x66,(char) 0x3e,(char)
+    			0xbe,(char) 0x56,(char) 0x20,(char) 0xb8,(char) 0x14,(char) 0x7f,(char) 0x3f,(char) 0x98,(char)
+    			0x1e,(char) 0x18,(char) 0x5a,(char) 0xaf,(char) 0x70,(char) 0x01,(char) 0x96,(char) 0xdc,(char)
+    			0x6b,(char) 0xae,(char) 0x90,(char) 0x58,(char) 0xac,(char) 0x1b,(char) 0xcf,(char) 0x2f,(char)
+    			0xff,(char) 0xa7,(char) 0xbb,(char) 0x6e,(char) 0x4d,(char) 0x20,(char) 0xa2,(char) 0x06,(char)
+    			0x8c,(char) 0xd2,(char) 0x9f,(char) 0x92,(char) 0x3d,(char) 0x2f,(char) 0xe8,(char) 0x2c,(char)
+    			0x30,(char) 0x9b,(char) 0x37,(char) 0x25,(char) 0x1c,(char) 0x75,(char) 0x58,(char) 0x62,(char)
+    			0x68,(char) 0x4f,(char) 0x91,(char) 0xb0,(char) 0x54,(char) 0x82,(char) 0x73,(char) 0x09,(char)
+    			0x2b,(char) 0xdf,(char) 0xc4,(char) 0x60,(char) 0xf1,(char) 0xee,(char) 0xb7,(char) 0xb0,(char)
+    			0x5d,(char) 0x86,(char) 0xd0,(char) 0x8e,(char) 0x18,(char) 0x6c,(char) 0x5c,(char) 0x53,(char)
+    			0xbc,(char) 0x2f,(char) 0x41,(char) 0xa8,(char) 0x5a,(char) 0x01 };
+    	
+
+        try
+    {
+       File f=new File("WriteChar.txt");
+
+       FileWriter out=new FileWriter(f);
+       out.write(peer0_1);
+       System.out.println("Done ..........");
+       out.close();
+    }
+
+        catch(IOException ioe)
+        {
+            ioe.printStackTrace();
+        }
+    		
+    }
+    
     static DatagramPacket test(){
     	
     	
@@ -139,9 +208,9 @@ public class Receiver {
     	byte[] peer3 = txt.getBytes(Charset.forName("ASCII"));
     		AdaptiveHuffman huff = null;
 			huff = new AdaptiveHuffman(peer2);
-    		System.out.println(new String(peer1));
+    		System.out.println(new String(peer1)+""+peer1.length);
     		String ah = huff.decode();
-    		System.out.println(ah);
+    		//System.out.println(ah);
     	
     	return new DatagramPacket(ah.getBytes(Charset.forName("ASCII")),ah.getBytes(Charset.forName("ASCII")).length,addr,port);
     }
